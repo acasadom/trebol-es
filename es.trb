@@ -1,0 +1,108 @@
+Trebol [
+    title: "Spain: the rules of a form for NIF, DNI, NIE, CIF and postal codes"
+    exports: [nif? dni? nie? cif? postal-code?]
+]
+
+; A form that imports this package takes these rules after its fields, as it takes email:
+;
+;   field id "NIF" required nif
+;
+; Each one is also a function, nif? "12345678Z", for code that has no form.
+
+digit: charset "0123456789"
+
+; The first letter of the NIF of a company or other body: its kind (A a company, B a limited one, G an association...)
+body-kind: charset "ABCDEFGHJNPQRSUVW"
+
+; The letter of a DNI or NIE: the number divided by 23 leaves its place in this text.
+letters: "TRWAGMYFPDXBNJZSQVHLCKE"
+
+control-letter: func [n [integer!]] [pick letters 1 + mod n 23]
+
+; The text in capitals, with no spaces, dots or dashes: 12.345.678-z is 12345678Z.
+clean: func [text [string!]] [
+    uppercase trim/all replace/all replace/all copy text "-" "" "." ""
+]
+
+dni?: func [
+    "True if the text is a DNI: eight digits and the letter they give."
+    text [string!]
+    /local s
+] [
+    s: clean text
+    to logic! all [
+        parse s [8 digit skip]
+        (last s) = control-letter to integer! copy/part s 8
+    ]
+]
+
+nie?: func [
+    "True if the text is a NIE: X, Y or Z, seven digits and the letter they give, with X as 0, Y as 1 and Z as 2."
+    text [string!]
+    /local s
+] [
+    s: clean text
+    to logic! all [
+        parse s [["X" | "Y" | "Z"] 7 digit skip]
+        (last s) = control-letter to integer! rejoin [(index? find "XYZ" first s) - 1  copy/part next s 7]
+    ]
+]
+
+; K, L and M are the NIF of people with no DNI or NIE: under fourteen, not resident, or foreign without a NIE.
+klm?: func [text [string!] /local s] [
+    s: clean text
+    to logic! all [
+        parse s [["K" | "L" | "M"] 7 digit skip]
+        (last s) = control-letter to integer! copy/part next s 7
+    ]
+]
+
+cif?: func [
+    "True if the text is the NIF of a company or other body (the old CIF): its kind, seven digits and the check, a digit or a letter."
+    text [string!]
+    /local s kind check sum d c
+] [
+    s: clean text
+    unless parse s [set kind body-kind 7 digit set check skip] [return false]
+    ; the digits in even places add up as they are; those in odd places doubled, adding the digits of each double
+    sum: 0
+    repeat i 7 [
+        d: (to integer! pick s i + 1) - 48
+        sum: sum + either even? i [d] [either d * 2 > 9 [d * 2 - 9] [d * 2]]
+    ]
+    c: mod 10 - mod sum 10 10
+    to logic! any [
+        ; a body of these kinds has a letter, of these a digit, and of the others either
+        all [not find "ABEH" kind  check = pick "JABCDEFGHI" c + 1]
+        all [not find "NPQRSW" kind  check = to char! 48 + c]
+    ]
+]
+
+nif?: func [
+    "True if the text is any NIF: a DNI, a NIE, the NIF of a company (CIF), or one starting K, L or M."
+    text [string!]
+] [
+    any [dni? text  nie? text  cif? text  klm? text]
+]
+
+postal-code?: func [
+    "True if the text is a Spanish postal code: five digits, the first two a province from 01 to 52."
+    text [string!]
+    /local s
+] [
+    s: trim copy text
+    to logic! all [
+        parse s [5 digit]
+        (to integer! copy/part s 2) >= 1
+        (to integer! copy/part s 2) <= 52
+    ]
+]
+
+; The rules need the UI dialect; a program with no forms still has the functions.
+if value? 'rule [
+    rule 'nif #(en: "Enter a valid NIF" es: "Introduce un NIF válido") [nif? form value]
+    rule 'dni #(en: "Enter a valid DNI" es: "Introduce un DNI válido") [dni? form value]
+    rule 'nie #(en: "Enter a valid NIE" es: "Introduce un NIE válido") [nie? form value]
+    rule 'cif #(en: "Enter a valid CIF" es: "Introduce un CIF válido") [cif? form value]
+    rule 'postal-code #(en: "Enter a Spanish postal code" es: "Introduce un código postal") [postal-code? form value]
+]

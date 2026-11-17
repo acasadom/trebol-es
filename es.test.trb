@@ -1,0 +1,59 @@
+Trebol [
+    title: "The rules of trebol-es"
+    app: none
+]
+
+import %es.trb
+
+"dni"
+[dni? "12345678Z"]
+[dni? "12.345.678-z"]
+[not dni? "12345678A"]
+[not dni? "1234567Z"]
+[not dni? "X1234567L"]
+
+"nie"
+[nie? "X1234567L"]
+[nie? "y-1234567-x"]
+[nie? "Z1234567R"]
+[not nie? "X1234567A"]
+[not nie? "W1234567L"]
+
+"cif"
+[cif? "A58818501"]
+[cif? "Q2826000H"]
+[cif? "B-12345674"]
+[not cif? "A58818502"]
+[not cif? "Q28260008"]
+[not cif? "A5881850A"]
+[cif? "G12345674"]
+[cif? "G1234567D"]
+
+"nif"
+[all [nif? "12345678Z" nif? "X1234567L" nif? "A58818501" nif? "K1234567L"]]
+[not nif? "K1234567A"]
+[not nif? ""]
+
+"postal code"
+[postal-code? "28013"]
+[postal-code? " 01001 "]
+[not postal-code? "53000"]
+[not postal-code? "00123"]
+[not postal-code? "2801"]
+
+"rules of a form"
+[
+    fs: layout/only [field id "NIF" nif  field cp "Postal code" postal-code  field d "DNI" dni required]
+    out: collect [
+        foreach [f v] reduce [fs/1 "12345678A" fs/1 "B12345674" fs/2 "99999" fs/3 none fs/3 "12345678Z"] [
+            ui-input f v  keep validate-face f
+        ]
+    ]
+    out = reduce ["Enter a valid NIF" none "Enter a Spanish postal code" "This field is required" none]
+]
+[
+    i18n/language: 'es
+    f: first layout/only [field id "NIF" nif]
+    ui-input f "1"
+    "Introduce un NIF válido" = validate-face f
+]

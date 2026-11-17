@@ -1,0 +1,26 @@
+{
+  "name": "trebol-es",
+  "version": "0.1.0",
+  "description": "Spanish rules for Trebol forms: NIF, DNI, NIE, CIF and postal codes",
+  "keywords": [
+    "trebol",
+    "spain",
+    "nif",
+    "nie",
+    "cif",
+    "validation"
+  ],
+  "license": "Apache-2.0",
+  "trebol": "es.trb",
+  "files": [
+    "es.trb",
+    "README.md",
+    "LICENSE"
+  ],
+  "peerDependencies": {
+    "trebol": ">0.1.2"
+  },
+  "scripts": {
+    "test": "trebol test es.test.trb && trebol check es.trb"
+  }
+}
