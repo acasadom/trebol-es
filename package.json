@@ -10,6 +10,14 @@
     "cif",
     "validation"
   ],
+  "homepage": "https://github.com/acasadom/trebol-es#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/acasadom/trebol-es.git"
+  },
+  "bugs": {
+    "url": "https://github.com/acasadom/trebol-es/issues"
+  },
   "license": "Apache-2.0",
   "trebol": "es.trb",
   "files": [
@@ -18,9 +26,15 @@
     "LICENSE"
   ],
   "peerDependencies": {
-    "trebol": ">0.1.2"
+    "trebol": ">=0.2.0"
   },
   "scripts": {
     "test": "trebol test es.test.trb && trebol check es.trb"
+  },
+  "devDependencies": {
+    "trebol": "^0.2.0"
+  },
+  "engines": {
+    "node": ">=22.18"
   }
 }
